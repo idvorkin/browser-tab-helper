@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // R7. The native messaging host: gives local tools the page in front and its selected text.
 //
-//   node tools/host.js install [extension id] [--dir <manifest dir>]   write Chrome's host manifest
-//   (Chrome starts it with the extension's origin as an argument)      run as the host
+//   node tools/host.js install [extension id] [--dir <manifest dir>]   write Edge's host manifest
+//   (the browser starts it with the extension's origin as an argument) run as the host
 //
 // Socket contract, documented in the README: one line of JSON in, {"type":"front"}, and one line out,
 // {"title":str,"url":str,"selection":str|null} or {"error":str}, then close.
@@ -27,21 +27,21 @@ export function socketPath(env = process.env, platform = process.platform) {
   return join(homedir(), 'Library', 'Caches', 'browser-tab-helper', 'host.sock');
 }
 
-/** The id Chrome gives an unpacked extension: the path's SHA-256, first 16 bytes, hex digits mapped onto a to p. */
+/** The id Chromium browsers give an unpacked extension: the path's SHA-256, first 16 bytes, hex digits mapped onto a to p. */
 export function extensionIdForPath(path) {
   const hex = createHash('sha256').update(path).digest('hex').slice(0, 32);
   return [...hex].map((digit) => String.fromCharCode('a'.charCodeAt(0) + parseInt(digit, 16))).join('');
 }
 
 export function defaultManifestDir(platform = process.platform) {
-  requireMacOS("Chrome's host manifest directory", platform);
-  return join(homedir(), 'Library', 'Application Support', 'Google', 'Chrome', 'NativeMessagingHosts');
+  requireMacOS("Edge's host manifest directory", platform);
+  return join(homedir(), 'Library', 'Application Support', 'Microsoft Edge', 'NativeMessagingHosts');
 }
 
 const shellQuote = (text) => `'${text.replaceAll("'", `'\\''`)}'`;
 
 /**
- * Writes the manifest and a launcher beside it. Chrome starts the host with a bare environment where
+ * Writes the manifest and a launcher beside it. The browser starts the host with a bare environment where
  * `#!/usr/bin/env node` often finds no node, so the launcher names the node running this install.
  */
 export function installHost({ platform = process.platform, dir = defaultManifestDir(platform), extensionId = extensionIdForPath(realpathSync(CHECKOUT)), nodePath = process.execPath } = {}) {
@@ -64,7 +64,7 @@ export function installHost({ platform = process.platform, dir = defaultManifest
   return { manifestPath, launcherPath, extensionId };
 }
 
-/** Chrome's framing: a 4-byte native-endian length, then that much JSON. */
+/** Native messaging's framing: a 4-byte native-endian length, then that much JSON. */
 export function encodeFrame(message) {
   const body = Buffer.from(JSON.stringify(message));
   const header = Buffer.alloc(4);
@@ -98,7 +98,7 @@ function runHost(path = socketPath()) {
   const dir = dirname(path);
   mkdirSync(dir, { recursive: true, mode: 0o700 });
   chmodSync(dir, 0o700);
-  // ponytail: a second Chrome profile's host takes the socket over and the last one started answers. If two
+  // ponytail: a second browser or profile's host takes the socket over and the last one started answers. If two
   // profiles ever matter, name the socket per profile, which changes the contract in the README.
   try {
     unlinkSync(path);
@@ -201,13 +201,13 @@ function runInstall(argv) {
   const { manifestPath, extensionId } = installHost({ dir, extensionId: args[0] });
   console.log(`Wrote ${manifestPath}`);
   console.log(`Allows chrome-extension://${extensionId}/`);
-  console.log('Reload the extension so Chrome starts the host.');
+  console.log('Reload the extension so the browser starts the host.');
 }
 
 const USAGE = `usage: host install [extension id] [--dir <manifest dir>]
 
-With no id it allows the id Chrome gives an unpacked extension loaded from this checkout.
-Otherwise Chrome starts this script itself, passing the extension's origin.`;
+With no id it allows the id Chromium browsers give an unpacked extension loaded from this checkout.
+Otherwise the browser starts this script itself, passing the extension's origin.`;
 
 if (isEntryPoint(import.meta.url)) {
   const [command, ...rest] = process.argv.slice(2);

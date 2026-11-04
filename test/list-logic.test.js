@@ -72,6 +72,7 @@ test('window name: never the list page or a New Tab', () => {
   ];
   assert.equal(windowName(tabs, { rules: RULES, listUrl }), 'Real page');
   assert.equal(windowName([tab('chrome://newtab/', { title: 'New Tab' })], { rules: RULES, listUrl }), 'Empty window');
+  assert.equal(windowName([tab('edge://newtab/', { title: 'New tab' })], { rules: RULES, listUrl }), 'Empty window');
   assert.doesNotMatch(windowName([tab(listUrl, { title: 'Tabs' })], { rules: RULES, listUrl }), /Tabs|Window \d/);
 });
 

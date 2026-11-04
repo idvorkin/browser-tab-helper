@@ -5,7 +5,7 @@ const NEARLY_ALL = 0.8;
 const MOSTLY_KNOWN = 0.5;
 const MIX_PARTS = 3;
 
-const NEW_TAB_URLS = ['chrome://newtab/', 'chrome://new-tab-page/', 'about:blank', 'about:newtab'];
+const NEW_TAB_URLS = ['edge://newtab/', 'chrome://newtab/', 'chrome://new-tab-page/', 'about:blank', 'about:newtab'];
 
 export function windowName(tabs, { rules, listUrl = null, titleOf = (tab) => tab.title } = {}) {
   const real = tabs.filter((tab) => !NEW_TAB_URLS.includes(tab.url) && !(listUrl && tab.url?.startsWith(listUrl)));

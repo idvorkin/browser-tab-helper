@@ -42,7 +42,7 @@ When a tab finishes loading a page already open in another tab, a card asks what
   so those extensions see a text field and let the letters through.
 - A page cannot press the card's actions: they ignore untrusted events.
 - Each action also has a Chrome command (default ⌥⇧D, ⌥⇧B, ⌥⇧X, ⌥⇧K), acting on the current tab whether or not the card
-  is up. The card lists the keys actually bound, since they can be changed at `chrome://extensions/shortcuts`.
+  is up. The card lists the keys actually bound, since they can be changed at `edge://extensions/shortcuts`.
 - The banner script is injected fresh each time it is shown, so an edit takes effect on the next duplicate with no reload.
 
 ## R3. Alias rules: two front doors to one place
@@ -126,16 +126,16 @@ shows the format.
 
 ## R7. Native messaging host: the front page for other tools
 
-Gives local tools the page in front and its selected text, without turning on Chrome's *Allow JavaScript from Apple Events*.
+Gives local tools the page in front and its selected text, without turning on the browser's *Allow JavaScript from Apple Events*.
 
-- When the extension starts, Chrome starts the host, which listens on a Unix socket readable by the user alone.
+- When the extension starts, the browser starts the host, which listens on a Unix socket readable by the user alone.
 - It answers one read-only request, the front tab's title, URL and selection, in a few milliseconds. The contract is in the
   [README](../README.md#the-contract).
 - The worker reads the selection only when asked, so no script is added to every page. Pages that refuse scripts answer with
   no selection.
 - A masked field's selection is never read: `type=password`, `autocomplete` containing `password`, or computed
   `-webkit-text-security` other than `none`.
-- `host install [extension id]` writes Chrome's host manifest. By default it allows the id Chrome gives an unpacked extension
+- `host install [extension id]` writes Edge's host manifest. By default it allows the id Edge gives an unpacked extension
   loaded from the checkout. macOS only: elsewhere it fails clearly unless given a directory.
 - When the host is missing, callers fall back to AppleScript for the title and URL, and say how to install the host.
 
