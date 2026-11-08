@@ -14,6 +14,7 @@ export const WATCHED_FILES = [
   'src/lib/layouts.js',
   'src/lib/normalize.js',
   'src/lib/page-scripts.js',
+  'src/lib/reload.js',
   'src/lib/sections.js',
   'src/lib/settings.js',
   'src/lib/titles.js',

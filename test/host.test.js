@@ -193,7 +193,8 @@ test('run with no origin it prints usage rather than taking the socket', () => {
 });
 
 test('the default socket path is the contract path', () => {
-  assert.match(socketPath({}), /\/Library\/Caches\/browser-tab-helper\/host\.sock$/);
+  // The default is macOS's; off macOS it throws, which the off-macOS test below covers.
+  assert.match(socketPath({}, 'darwin'), /\/Library\/Caches\/browser-tab-helper\/host\.sock$/);
   assert.equal(socketPath({ BROWSER_TAB_HELPER_SOCK: '/tmp/x.sock' }), '/tmp/x.sock');
 });
 

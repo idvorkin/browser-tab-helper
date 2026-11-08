@@ -6,6 +6,7 @@ import { compileRules, decideCard, duplicateGroups, liveMutes, MUTE_MS, redundan
 import { buildLayout, planRestore, validateLayout } from './src/lib/layouts.js';
 import { normalizeUrl } from './src/lib/normalize.js';
 import { pageControls, readSelection } from './src/lib/page-scripts.js';
+import { isPacked, reloadDecision, reopenRecord } from './src/lib/reload.js';
 import { withDefaults } from './src/lib/settings.js';
 import { updateDocTabs } from './src/lib/titles.js';
 import { WATCHED_FILES } from './src/lib/watched-files.js';
@@ -517,8 +518,8 @@ async function hashWatchedFiles() {
 }
 
 async function reloadIfChanged() {
-  // Only an unpacked extension: one from the store has an update_url, and its files cannot change.
-  if ('update_url' in chrome.runtime.getManifest()) return;
+  // The rules are in src/lib/reload.js; this hashes, reads storage and calls Chrome.
+  if (isPacked(chrome.runtime.getManifest())) return;
   const { autoReload } = await getSettings();
   let current;
   try {
@@ -527,16 +528,13 @@ async function reloadIfChanged() {
     return; // A file mid-save or deleted: look again on the next tick.
   }
   const { fileHash } = await chrome.storage.local.get('fileHash');
-  // While switched off the stored hash stays old, so switching on picks up what changed in the meantime.
-  if (current === fileHash || (!autoReload && fileHash !== undefined)) return;
-  await chrome.storage.local.set({ fileHash: current });
-  if (fileHash === undefined) return;
+  const { store, reload } = reloadDecision({ autoReload, current, stored: fileHash });
+  if (store !== null) await chrome.storage.local.set({ fileHash: store });
+  if (!reload) return;
 
-  // A reload closes the extension's own pages, so note where the list was and put it back.
   const [listTab] = await chrome.tabs.query({ url: LIST_URL });
-  if (listTab) {
-    await chrome.storage.local.set({ reopenList: { windowId: listTab.windowId, index: listTab.index, active: listTab.active } });
-  }
+  const reopenList = reopenRecord(listTab);
+  if (reopenList) await chrome.storage.local.set({ reopenList });
   logEvent('self-reload');
   chrome.runtime.reload();
 }

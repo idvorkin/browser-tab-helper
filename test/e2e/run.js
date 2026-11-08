@@ -1160,8 +1160,8 @@ async function main() {
     const listIsOpen = () => [...second.targets.values()].some((info) => info.type === 'page' && info.url === listUrl);
 
     // The full cycle cannot run here: in --headless=new with --load-extension, chrome.runtime.reload() unloads any
-    // extension, even a minimal one, and never brings it back. So these three cover its parts: what a reload leaves
-    // behind is picked up, an edit fires the reload when switched on, and does not when switched off.
+    // extension, even a minimal one, and never brings it back. So these two cover its parts: what a reload leaves
+    // behind is picked up, and an edit fires the reload when switched on. When it does not fire is test/reload.test.js.
     await check('R9 the list page comes back from what a reload leaves behind', async () => {
       await inW('await chrome.storage.local.set({reopenList: {windowId: 999999, index: 0, active: true}})');
       await sleep(1000);
@@ -1186,22 +1186,16 @@ async function main() {
 
     const manifestPath = join(copy, 'manifest.json');
 
-    // Attached once, up front: a fresh attach to a background page that has sat idle for 35 s can go unanswered.
-    let listSession = null;
+    // Switched off, an edit does not reload: test/reload.test.js covers that decision, so no 35 s wait here.
     let cardSession = null;
 
-    await check('R9 switched off, a manifest edit does not reload', async () => {
-      listSession = await second.page(listUrl);
-      cardSession = await second.page(`${base2}/edited?utm_id=1`);
-      writeFileSync(manifestPath, readFileSync(manifestPath, 'utf8').replace('"version": "0.1.0"', '"version": "0.1.1"'));
-      await sleep(35_000);
-      ok(listIsOpen(), 'a reload would have closed the list page');
-    });
-
     await check('R9 switched on, a manifest edit fires the reload within about 30 s', async () => {
+      // Attached before the reload: this card is the one the next check finds orphaned.
+      const listSession = await second.page(listUrl);
+      cardSession = await second.page(`${base2}/edited?utm_id=1`);
       await second.evalIn(listSession, "chrome.storage.local.set({settings: {autoReload: true}})");
       const started = Date.now();
-      writeFileSync(manifestPath, readFileSync(manifestPath, 'utf8').replace('"version": "0.1.1"', '"version": "0.1.2"'));
+      writeFileSync(manifestPath, readFileSync(manifestPath, 'utf8').replace('"version": "0.1.0"', '"version": "0.1.1"'));
       await until('the reload closes the list page', () => !listIsOpen(), 40_000).catch(async (error) => {
         const state = await second.evalIn(listSession, `Promise.all([chrome.storage.local.get(), chrome.alarms.getAll()]).then(([s, a]) => JSON.stringify({
           settings: s.settings, hash: s.fileHash?.slice(0, 8), reopen: s.reopenList, alarmInMs: a[0] && a[0].scheduledTime - Date.now(), manifest: chrome.runtime.getManifest().version,
