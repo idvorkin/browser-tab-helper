@@ -12,7 +12,7 @@ export function isEntryPoint(moduleUrl) {
   }
 }
 
-/** The default paths are macOS's. Elsewhere Chrome would not look there, so say so rather than appear to work. */
+/** The default paths are macOS's. Elsewhere the browser would not look there, so say so rather than appear to work. */
 export function requireMacOS(what, platform = process.platform) {
   if (platform !== 'darwin') throw new Error(`${what} is only known on macOS, and this is ${platform}. See the README.`);
 }

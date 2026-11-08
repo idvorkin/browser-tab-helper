@@ -239,11 +239,11 @@ test('a bad id is refused', () => {
   assert.match(result.stderr, /not an extension id/);
 });
 
-test('off macOS, the default paths fail clearly rather than pointing where Chrome will not look', () => {
+test('off macOS, the default paths fail clearly rather than pointing where the browser will not look', () => {
   assert.throws(() => defaultManifestDir('linux'), /macOS/);
   assert.throws(() => socketPath({}, 'linux'), /macOS/);
   assert.equal(socketPath({ BROWSER_TAB_HELPER_SOCK: '/tmp/x.sock' }, 'linux'), '/tmp/x.sock', 'an explicit path still works');
-  assert.match(defaultManifestDir('darwin'), /Google\/Chrome\/NativeMessagingHosts$/);
+  assert.match(defaultManifestDir('darwin'), /Microsoft Edge\/NativeMessagingHosts$/);
 });
 
 test('off macOS, install with no directory says so; with one it still works', () => {

@@ -1,6 +1,6 @@
 # Browser tab helper
 
-A Chrome extension (Manifest V3, plain JavaScript modules, no build step, no runtime dependencies) that:
+A Microsoft Edge extension (Manifest V3, plain JavaScript modules, no build step, no runtime dependencies) that:
 
 - stops you settling into a duplicate tab, with a card over the page,
 - lists every open tab on one page, by window, kind or tab group, with drag and drop and undo,
@@ -16,15 +16,17 @@ Node 22 or later.
 
 ## Install
 
-1. Open `chrome://extensions`, switch on **Developer mode**, click **Load unpacked** and choose this checkout.
+1. Open `edge://extensions`, switch on **Developer mode**, click **Load unpacked** and choose this checkout.
 2. Optional, for tools that want the front page:
 
    ```bash
-   node tools/host.js install            # allows the id Chrome gives an unpacked extension loaded from this checkout
+   node tools/host.js install            # allows the id Edge gives an unpacked extension loaded from this checkout
    node tools/host.js install <id>       # or a specific extension id
    ```
 
-   Then reload the extension. `--dir <directory>` writes the manifest somewhere else, for testing.
+   Then reload the extension. `--dir <directory>` writes the manifest somewhere else, for testing or for Chrome
+   (`~/Library/Application Support/Google/Chrome/NativeMessagingHosts`). Run the extension in one browser at a time:
+   the last host started takes the socket.
 
 The toolbar icon (or the extension's Options entry) opens the list page. The red badge counts tabs that could close
 with nothing lost.
@@ -47,7 +49,7 @@ state there.
 | `k`        | ⌥⇧K | **Keep both**: dismiss, and stop asking about this URL for an hour |
 | Esc        |     | Dismiss, as do a click on the backdrop and × |
 
-The commands work whether or not a card is up, and can be changed at `chrome://extensions/shortcuts`; the card lists the
+The commands work whether or not a card is up, and can be changed at `edge://extensions/shortcuts`; the card lists the
 keys actually bound. While the card is up, focus sits in a hidden read-only input, so Vimium-style extensions see a text
 field and let the letters through.
 
@@ -88,8 +90,8 @@ bare URLs) as a group at the end of this window, named by the first line.
 
 ## The native host: the front page for other tools
 
-Gives local tools the page in front and its selected text without turning on Chrome's *Allow JavaScript from Apple
-Events*. When the extension starts, Chrome starts the host, which listens on a Unix socket.
+Gives local tools the page in front and its selected text without turning on the browser's *Allow JavaScript from Apple
+Events*. When the extension starts, the browser starts the host, which listens on a Unix socket.
 
 ### The contract
 
@@ -99,7 +101,7 @@ Events*. When the extension starts, Chrome starts the host, which listens on a U
   - `{"title":str,"url":str,"selection":str|null}`, or
   - `{"error":str}`
 - **Install:** `host install [extension id]`, which is `node tools/host.js install [extension id]` from a checkout. By
-  default it allows the id Chrome gives an unpacked extension loaded from the checkout.
+  default it allows the id Edge gives an unpacked extension loaded from the checkout.
 
 ```bash
 printf '{"type":"front"}\n' | nc -U ~/Library/Caches/browser-tab-helper/host.sock
@@ -111,7 +113,7 @@ containing `password`, or computed `-webkit-text-security` other than `none`. A 
 reason therefore answers `null` too, which is the safe way to be wrong. The selection is read only when asked, so no
 script is added to every page.
 
-**When the socket is missing**, the host is not installed or Chrome is not running. Callers should fall back to
+**When the socket is missing**, the host is not installed or Edge is not running. Callers should fall back to
 AppleScript for the title and URL, and say to run `node tools/host.js install`.
 
 ## The bridge: local tools drive the browser
@@ -169,4 +171,4 @@ the bottom of the list page. The banner is injected fresh each time, so an edit 
 even with that switched off.
 
 The watcher runs in the worker, so a syntax error in `background.js` or anything it imports stops the watcher too. Fix the
-error and press reload at `chrome://extensions`. A reload also resets the list page's filter, lens and undo toasts.
+error and press reload at `edge://extensions`. A reload also resets the list page's filter, lens and undo toasts.
