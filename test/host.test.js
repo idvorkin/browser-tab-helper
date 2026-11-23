@@ -7,7 +7,7 @@ import net from 'node:net';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { defaultManifestDir, encodeFrame, extensionIdForPath, frameReader, HOST_NAME, installHost, socketPath } from '../tools/host.js';
+import { defaultManifestDir, encodeFrame, extensionIdForPath, frameReader, HOST_NAME, installHost, socketPath, stableNodePath } from '../tools/host.js';
 
 const HOST = fileURLToPath(new URL('../tools/host.js', import.meta.url));
 const ORIGIN = 'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/';
@@ -279,4 +279,10 @@ test('the tools run when started through a symlink, as an npm bin is, and not wh
   const imported = spawnSync(process.execPath, ['--input-type=module', '-e', `await import(${JSON.stringify(HOST)}); console.log('imported')`], { encoding: 'utf8' });
   assert.equal(imported.status, 0);
   assert.equal(imported.stdout.trim(), 'imported');
+});
+
+test('the launcher names Homebrew node by its opt link, which survives brew upgrade', () => {
+  assert.equal(stableNodePath('/opt/homebrew/Cellar/node/26.13.0_2/bin/node'), '/opt/homebrew/opt/node/bin/node');
+  assert.equal(stableNodePath('/usr/local/Cellar/node@22/22.11.0/bin/node'), '/usr/local/opt/node@22/bin/node');
+  assert.equal(stableNodePath('/Users/me/.local/share/mise/installs/node/22/bin/node'), '/Users/me/.local/share/mise/installs/node/22/bin/node');
 });
