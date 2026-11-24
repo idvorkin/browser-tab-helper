@@ -41,10 +41,19 @@ export function defaultManifestDir(platform = process.platform) {
 const shellQuote = (text) => `'${text.replaceAll("'", `'\\''`)}'`;
 
 /**
+ * A Homebrew node runs from a versioned Cellar directory that the next `brew upgrade` deletes. Name the formula's
+ * stable `opt` link instead, so the launcher keeps working across upgrades.
+ */
+export function stableNodePath(execPath) {
+  const cellar = execPath.match(/^(.*)\/Cellar\/([^/]+)\/[^/]+\/(bin\/node)$/);
+  return cellar ? `${cellar[1]}/opt/${cellar[2]}/${cellar[3]}` : execPath;
+}
+
+/**
  * Writes the manifest and a launcher beside it. The browser starts the host with a bare environment where
  * `#!/usr/bin/env node` often finds no node, so the launcher names the node running this install.
  */
-export function installHost({ platform = process.platform, dir = defaultManifestDir(platform), extensionId = extensionIdForPath(realpathSync(CHECKOUT)), nodePath = process.execPath } = {}) {
+export function installHost({ platform = process.platform, dir = defaultManifestDir(platform), extensionId = extensionIdForPath(realpathSync(CHECKOUT)), nodePath = stableNodePath(process.execPath) } = {}) {
   if (!/^[a-p]{32}$/.test(extensionId)) throw new Error(`not an extension id: ${extensionId}`);
   mkdirSync(dir, { recursive: true });
 
